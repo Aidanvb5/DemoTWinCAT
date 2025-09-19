@@ -1,6 +1,6 @@
 # Data Unit Types (DUTs)
 
-*Last updated: 2025-09-19 07:22:31*
+*Last updated: 2025-09-19 07:24:10*
 
 This page lists all custom data types defined in the project.
 
