@@ -70,7 +70,9 @@ jobs:
         
     - name: Pull latest changes
       if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
-      run: git pull origin main --rebase
+      run: |
+        # Only fetch here to avoid conflicts with unstaged changes; we'll merge in the commit step
+        git fetch origin main
         
     - name: Commit and push wiki changes
       if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
@@ -82,7 +84,6 @@ jobs:
           echo "No changes to commit"
           exit 0
         fi
-        git pull --rebase origin main
         git commit -m "🤖 Auto-update wiki documentation
 
         Generated from TwinCAT project files:
@@ -92,7 +93,8 @@ jobs:
 
         Triggered by: ${{ github.event_name }}
         Commit: ${{ github.sha }}"
-        git pull --rebase origin main
+        git fetch origin main
+        git merge --ff-only origin/main || git merge --no-edit origin/main
         git push
         
     - name: Clone wiki repository
