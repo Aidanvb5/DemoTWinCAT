@@ -25,220 +25,167 @@ permissions:
 jobs:
   generate-wiki:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-        
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    
-    - name: Get current date
-      id: date
-      run: echo "date=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
-        
-    - name: Generate wiki documentation
-      run: |
-        echo "Generating wiki documentation..."
-        python scripts/generate_wiki.py --verbose --project-dir DemoTwinCAT --output-dir wiki
-        
-    - name: Check for changes
-      id: check_changes
-      run: |
-        if [ -d "wiki" ]; then
-          if git diff --quiet HEAD -- wiki/ 2>/dev/null; then
-            echo "No changes detected in wiki files"
-            echo "changes_detected=false" >> $GITHUB_OUTPUT
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate wiki content
+        run: |
+          python scripts/generate_wiki.py
+
+      - name: Get current date
+        id: date
+        run: |
+          echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Prepare wiki repository
+        run: |
+          echo "Cloning wiki repository..."
+          if git ls-remote https://github.com/Aidanvb5/DemoTWinCAT.wiki.git HEAD >/dev/null 2>&1; then
+            git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git wiki-repo
           else
-            echo "Changes detected in wiki files"
-            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "Wiki repository doesn't exist or is empty, creating new one..."
+            mkdir -p wiki-repo
+            cd wiki-repo
+            git init
+            git remote add origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git
+            git config user.email "action@github.com"
+            git config user.name "GitHub Action"
+            echo "# Wiki" > README.md
+            git add README.md
+            git commit -m "Initialize wiki repository"
+            git branch -M master
+            cd ..
           fi
-        else
-          echo "Wiki directory created"
-          echo "changes_detected=true" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Pull latest changes
-      if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
-      run: |
-        # Only fetch here to avoid conflicts with unstaged changes; we'll merge in the commit step
-        git fetch origin main
-        
-    - name: Commit and push wiki changes
-      if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add wiki/
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-          exit 0
-        fi
-        git commit -m "🤖 Auto-update wiki documentation
 
-        Generated from TwinCAT project files:
-        - POUs: $(find DemoTwinCAT -name '*.TcPOU' | wc -l) files
-        - DUTs: $(find DemoTwinCAT -name '*.TcDUT' | wc -l) files  
-        - GVLs: $(find DemoTwinCAT -name '*.TcGVL' | wc -l) files
+      - name: Update wiki repository
+        run: |
+          echo "Updating wiki repository with generated documentation..."
 
-        Triggered by: ${{ github.event_name }}
-        Commit: ${{ github.sha }}"
-        git fetch origin main
-        git merge --ff-only origin/main || git merge --no-edit origin/main
-        git push
-        
-    - name: Clone wiki repository
-      if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
-      run: |
-        echo "Cloning wiki repository..."
-        # Clone the wiki repository using GitHub token
-        git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git wiki-repo 2>/dev/null || {
-          echo "Wiki repository doesn't exist or is empty, creating new one..."
-          mkdir -p wiki-repo
           cd wiki-repo
-          git init
-          git remote add origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          # Create initial commit to establish master branch
-          echo "# Wiki" > README.md
-          git add README.md
-          git commit -m "Initialize wiki repository"
-          git branch -M master
-          cd ..
-        }
-        
-    - name: Update wiki repository
-      if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
-      run: |
-        echo "Updating wiki repository with generated documentation..."
-        
-        # Configure git for wiki repository
-        cd wiki-repo
-        git config user.email "action@github.com"
-        git config user.name "GitHub Action"
-        
-        # Ensure we're on master branch
-        git checkout master 2>/dev/null || git checkout -b master
-        
-        # Copy all generated wiki files to wiki repository
-        cp ../wiki/*.md . 2>/dev/null || echo "No markdown files to copy"
-        
-        # Add all changes
-        git add .
-        
-        # Check if there are changes to commit
-        if git diff --staged --quiet; then
-          echo "No changes to commit to wiki repository"
-          cd ..
-          exit 0
-        fi
-        
-        # Commit changes
-        git commit -m "🤖 Auto-update wiki documentation
-        
-        Generated from TwinCAT project files:
-        - POUs: $(find ../DemoTwinCAT -name '*.TcPOU' | wc -l) files
-        - DUTs: $(find ../DemoTwinCAT -name '*.TcDUT' | wc -l) files  
-        - GVLs: $(find ../DemoTwinCAT -name '*.TcGVL' | wc -l) files
-        
-        Documentation includes:
-        - Home page with project overview
-        - Architecture overview
-        - Detailed component documentation
-        - API documentation
-        - Project statistics
-        
-        Triggered by: ${{ github.event_name }}
-        Source commit: ${{ github.sha }}"
-        
-        # Push to wiki repository (master branch)
-        git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git master || {
-          echo "Failed to push to existing wiki, trying to create new repository..."
-          git push -u https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git master
-        }
-        
-        cd ..
-        echo "Wiki repository updated successfully!"
-        
-    - name: Upload wiki artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: twincat-wiki-documentation
-        path: wiki/
-        retention-days: 30
-        
-    - name: Create release on tag
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          wiki/*.md
-        name: "Documentation for ${{ github.ref_name }}"
-        body: |
-          Automatically generated wiki documentation for TwinCAT project.
-          
-          **Contents:**
-          - Complete API documentation
+
+          git checkout master 2>/dev/null || git checkout -b master
+
+          # Remove existing markdown files to avoid stale pages
+          find . -maxdepth 1 -type f -name "*.md" -exec rm -f {} \;
+
+          # Copy all generated wiki files to wiki repository
+          cp ../wiki/*.md . 2>/dev/null || true
+
+          git add .
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit to wiki repository"
+            cd ..
+            exit 0
+          fi
+
+          git commit -m "🤖 Auto-update wiki documentation
+
+          Generated from TwinCAT project files:
+          - POUs: $(find ../DemoTwinCAT -name '*.TcPOU' | wc -l) files
+          - DUTs: $(find ../DemoTwinCAT -name '*.TcDUT' | wc -l) files
+          - GVLs: $(find ../DemoTwinCAT -name '*.TcGVL' | wc -l) files
+
+          Documentation includes:
+          - Home page with project overview
           - Architecture overview
           - Detailed component documentation
+          - API documentation
           - Project statistics
-          
-          Generated on: ${{ steps.date.outputs.date }}
-        draft: false
-        prerelease: false
 
-  # Optional: Deploy to GitHub Pages
+          Triggered by: ${{ github.event_name }}
+          Source commit: ${{ github.sha }}"
+
+          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git master || \
+            git push -u https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git master
+
+          cd ..
+
+      - name: Upload wiki artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: twincat-wiki-documentation
+          path: wiki/
+          retention-days: 30
+
+      - name: Create release on tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            wiki/*.md
+          name: "Documentation for ${{ github.ref_name }}"
+          body: |
+            Automatically generated wiki documentation for TwinCAT project.
+
+            Contents:
+            - Complete API documentation
+            - Architecture overview
+            - Detailed component documentation
+            - Project statistics
+
+            Generated on: ${{ steps.date.outputs.date }}
+          draft: false
+          prerelease: false
+
   deploy-pages:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: generate-wiki
     runs-on: ubuntu-latest
-    
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-      
+
     steps:
-    - name: Download wiki artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: twincat-wiki-documentation
-        path: wiki/
-        
-    - name: Create index.html redirect
-      run: |
-        cat > wiki/index.html << 'EOF'
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta http-equiv="refresh" content="0; url=Home.md">
-          <title>TwinCAT Project Documentation</title>
-        </head>
-        <body>
-          <p><a href="Home.md">Click here if you are not redirected automatically</a></p>
-        </body>
-        </html>
-        EOF
-        
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
-      
-    - name: Upload to Pages
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: wiki/
-        
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
+      - name: Download wiki artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: twincat-wiki-documentation
+          path: wiki/
+
+      - name: Create index.html redirect
+        run: |
+          cat > wiki/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=Home.md">
+            <title>TwinCAT Project Documentation</title>
+          </head>
+          <body>
+            <p><a href="Home.md">Click here if you are not redirected automatically</a></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload to Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: wiki/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

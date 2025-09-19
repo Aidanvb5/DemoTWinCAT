@@ -5,10 +5,7 @@ Wiki Generator for TwinCAT Projects
 
 This module generates markdown documentation from TwinCAT3 project files
 for automatic wiki page creation.
-
-Author: Demo System
-Date: 2024
-Version: 1.0
+It parses project files, extracts comments and structure information,
 """
 
 import os
@@ -55,33 +52,49 @@ class WikiGenerator:
         
         # Parse project
         project_data = self.parser.parse_project()
+        has_duts = len(project_data['duts']) > 0
+        has_gvls = len(project_data['gvls']) > 0
+        # API page only relevant if there are either function blocks, functions, or duts
+        has_api = any(p.type in ('FUNCTION_BLOCK', 'FUNCTION') for p in project_data['pous']) or has_duts
+        
+        # Clean old wiki files to avoid stale pages (only .md in output root)
+        try:
+            for md in self.output_dir.glob('*.md'):
+                md.unlink()
+            logger.info("Cleaned old wiki .md files")
+        except Exception as e:
+            logger.warning(f"Failed cleaning wiki directory: {e}")
         
         # Generate main pages
-        self._generate_home_page(project_data)
+        self._generate_home_page(project_data, has_api=has_api, has_duts=has_duts, has_gvls=has_gvls)
         self._generate_architecture_overview(project_data)
         self._generate_pou_index(project_data['pous'])
-        self._generate_dut_index(project_data['duts'])
-        self._generate_gvl_index(project_data['gvls'])
+        if has_duts:
+            self._generate_dut_index(project_data['duts'])
+        if has_gvls:
+            self._generate_gvl_index(project_data['gvls'])
         
         # Generate detailed pages for each component
         for pou in project_data['pous']:
             self._generate_pou_page(pou)
         
-        for dut in project_data['duts']:
-            self._generate_dut_page(dut)
+        if has_duts:
+            for dut in project_data['duts']:
+                self._generate_dut_page(dut)
         
-        for gvl in project_data['gvls']:
-            self._generate_gvl_page(gvl)
+        if has_gvls:
+            for gvl in project_data['gvls']:
+                self._generate_gvl_page(gvl)
         
-        # Generate API documentation
-        self._generate_api_documentation(project_data)
+        # Generate API documentation only when relevant
+        if has_api:
+            self._generate_api_documentation(project_data)
         
-        # Generate project statistics
-        self._generate_statistics_page(project_data)
+    # Skip project statistics page for minimal demo
         
         logger.info(f"Wiki generation complete. Files saved to: {self.output_dir}")
     
-    def _generate_home_page(self, project_data: Dict) -> None:
+    def _generate_home_page(self, project_data: Dict, *, has_api: bool, has_duts: bool, has_gvls: bool) -> None:
         """Generate the main wiki home page."""
         template = self.jinja_env.get_template('home.md.j2')
         content = template.render(
@@ -89,7 +102,10 @@ class WikiGenerator:
             timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             pou_count=len(project_data['pous']),
             dut_count=len(project_data['duts']),
-            gvl_count=len(project_data['gvls'])
+            gvl_count=len(project_data['gvls']),
+            has_api=has_api,
+            has_duts=has_duts,
+            has_gvls=has_gvls
         )
         
         with open(self.output_dir / 'Home.md', 'w', encoding='utf-8') as f:
@@ -231,17 +247,12 @@ class WikiGenerator:
         """Create default Jinja2 templates if they don't exist."""
         template_dir = Path(__file__).parent / "templates"
         
+        # Minimal template set for the simplified demo (no statistics)
         templates = {
             'home.md.j2': self._get_home_template(),
             'architecture.md.j2': self._get_architecture_template(),
             'pou_index.md.j2': self._get_pou_index_template(),
-            'pou_detail.md.j2': self._get_pou_detail_template(),
-            'dut_index.md.j2': self._get_dut_index_template(),
-            'dut_detail.md.j2': self._get_dut_detail_template(),
-            'gvl_index.md.j2': self._get_gvl_index_template(),
-            'gvl_detail.md.j2': self._get_gvl_detail_template(),
-            'api_documentation.md.j2': self._get_api_documentation_template(),
-            'statistics.md.j2': self._get_statistics_template()
+            'pou_detail.md.j2': self._get_pou_detail_template()
         }
         
         for filename, template_content in templates.items():
@@ -259,7 +270,7 @@ class WikiGenerator:
 
 ## Project Overview
 
-This is an automatically generated wiki for the TwinCAT3 project demonstrating GitHub integration and automated documentation generation.
+This is an automatically generated wiki for a simple TwinCAT3 example (schakelaars en lampje) demonstrating GitHub integration and automated documentation generation.
 
 ### Project Statistics
 
@@ -725,7 +736,7 @@ Project: **{{ project.name }}**
 Version: **{{ project.version }}**  
 Author: **{{ project.author }}**
 
-## Code Statistics
+## Code Statistics (Minimal Example)
 
 ### Components
 - **Total POUs**: {{ stats.total_pous }}
@@ -733,8 +744,8 @@ Author: **{{ project.author }}**
   - Function Blocks: {{ stats.function_blocks }}
   - Functions: {{ stats.functions }}
 - **Total DUTs**: {{ stats.total_duts }}
-  - Structures: {{ stats.structs }}
-  - Enumerations: {{ stats.enums }}
+    - Structures: {{ stats.structs }}
+    - Enumerations: {{ stats.enums }}
 - **Total GVLs**: {{ stats.total_gvls }}
 
 ### Variables
@@ -769,7 +780,7 @@ Author: **{{ project.author }}**
 
 - **Documentation Coverage**: {% if stats.total_pous > 0 %}{{ (pous|selectattr("description")|list|length / stats.total_pous * 100)|round(1) }}%{% else %}N/A{% endif %}
 - **Average Variables per POU**: {% if stats.total_pous > 0 %}{{ (stats.total_variables / stats.total_pous)|round(1) }}{% else %}N/A{% endif %}
-- **Average Members per DUT**: {% if stats.total_duts > 0 %}{{ (duts|sum(attribute='members')|length / stats.total_duts)|round(1) }}{% else %}N/A{% endif %}
+- **Average Members per DUT**: {% if stats.total_duts > 0 %}{{ (duts|length > 0 and (duts|map(attribute='members')|map('length')|sum / stats.total_duts)|round(1)) or 'N/A' %}{% endif %}
 
 ---
 *Statistics generated automatically from project source code*

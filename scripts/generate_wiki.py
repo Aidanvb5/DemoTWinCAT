@@ -8,10 +8,6 @@ Can be run manually or automatically via CI/CD pipeline.
 
 Usage:
     python generate_wiki.py [--project-dir DIR] [--output-dir DIR] [--verbose]
-
-Author: Demo System
-Date: 2024
-Version: 1.0
 """
 
 import argparse

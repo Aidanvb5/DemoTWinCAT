@@ -24,21 +24,7 @@
     <Compile Include="PLC\POUs\MAIN.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PLC\POUs\FB_ConveyorControl.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PLC\POUs\FB_MotorControl.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PLC\DUTs\E_MotorState.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PLC\DUTs\ST_ConveyorData.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PLC\GVLs\GVL_System.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
+    
     <Compile Include="System\System Manager.TcSMF">
       <SubType>Code</SubType>
     </Compile>
@@ -46,9 +32,6 @@
   <ItemGroup>
     <Folder Include="PLC" />
     <Folder Include="PLC\POUs" />
-    <Folder Include="PLC\DUTs" />
-    <Folder Include="PLC\GVLs" />
-    <Folder Include="PLC\VISUs" />
     <Folder Include="System" />
   </ItemGroup>
   <ProjectExtensions>

@@ -71,6 +71,7 @@ class TwinCATParser:
         self.pous = []
         self.duts = []
         self.gvls = []
+        self.included_files = self._get_project_included_files()
         
     def parse_project(self) -> Dict:
         """Parse entire TwinCAT project and extract information."""
@@ -95,7 +96,11 @@ class TwinCATParser:
     def _parse_pous(self):
         """Parse all POU (Program Organization Unit) files."""
         pou_pattern = "**/*.TcPOU"
-        pou_files = list(self.project_root.glob(pou_pattern))
+        all_pou_files = list(self.project_root.glob(pou_pattern))
+        if self.included_files:
+            pou_files = [p for p in all_pou_files if str(p.relative_to(self.project_root)).replace('\\','/') in self.included_files]
+        else:
+            pou_files = all_pou_files
         
         logger.info(f"Found {len(pou_files)} POU files")
         
@@ -110,7 +115,11 @@ class TwinCATParser:
     def _parse_duts(self):
         """Parse all DUT (Data Unit Type) files."""
         dut_pattern = "**/*.TcDUT"
-        dut_files = list(self.project_root.glob(dut_pattern))
+        all_dut_files = list(self.project_root.glob(dut_pattern))
+        if self.included_files:
+            dut_files = [p for p in all_dut_files if str(p.relative_to(self.project_root)).replace('\\','/') in self.included_files]
+        else:
+            dut_files = all_dut_files
         
         logger.info(f"Found {len(dut_files)} DUT files")
         
@@ -125,7 +134,11 @@ class TwinCATParser:
     def _parse_gvls(self):
         """Parse all GVL (Global Variable List) files."""
         gvl_pattern = "**/*.TcGVL"
-        gvl_files = list(self.project_root.glob(gvl_pattern))
+        all_gvl_files = list(self.project_root.glob(gvl_pattern))
+        if self.included_files:
+            gvl_files = [p for p in all_gvl_files if str(p.relative_to(self.project_root)).replace('\\','/') in self.included_files]
+        else:
+            gvl_files = all_gvl_files
         
         logger.info(f"Found {len(gvl_files)} GVL files")
         
@@ -386,6 +399,32 @@ class TwinCATParser:
                 logger.warning(f"Could not parse project file: {e}")
         
         return project_info
+
+    def _get_project_included_files(self) -> List[str]:
+        """Read .tsproj files to determine which source files are included.
+        Returns normalized relative paths (with forward slashes).
+        If no project file is found or parsing fails, returns an empty list to allow glob fallback.
+        """
+        includes: List[str] = []
+        project_files = list(self.project_root.glob("*.tsproj"))
+        for proj in project_files:
+            try:
+                tree = ET.parse(proj)
+                root = tree.getroot()
+                for compile_item in root.findall(".//{http://schemas.microsoft.com/developer/msbuild/2003}Compile"):
+                    inc = compile_item.get("Include")
+                    if inc:
+                        # Normalize separators
+                        includes.append(inc.replace('\\','/'))
+                # Also support cases without namespace
+                for compile_item in root.findall(".//Compile"):
+                    inc = compile_item.get("Include")
+                    if inc:
+                        includes.append(inc.replace('\\','/'))
+            except Exception as e:
+                logger.warning(f"Could not parse project file for includes ({proj}): {e}")
+        # Deduplicate
+        return sorted(set(includes))
 
 
 if __name__ == "__main__":

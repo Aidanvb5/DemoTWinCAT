@@ -18,6 +18,7 @@ Total POUs: **{{ pous|length }}**
 
 ## Programs
 
+{% if programs %}
 {% for pou in programs %}
 ### [{{ pou.name }}](POU-{{ pou.name }}.md)
 - **File**: `{{ pou.file_path }}`
@@ -28,9 +29,13 @@ Total POUs: **{{ pous|length }}**
 {% endif %}
 
 {% endfor %}
+{% else %}
+*No programs found.*
+{% endif %}
 
 ## Function Blocks
 
+{% if function_blocks %}
 {% for pou in function_blocks %}
 ### [{{ pou.name }}](POU-{{ pou.name }}.md)
 - **File**: `{{ pou.file_path }}`
@@ -41,9 +46,13 @@ Total POUs: **{{ pous|length }}**
 {% endif %}
 
 {% endfor %}
+{% else %}
+*No function blocks found.*
+{% endif %}
 
 ## Functions
 
+{% if functions %}
 {% for pou in functions %}
 ### [{{ pou.name }}](POU-{{ pou.name }}.md)
 - **File**: `{{ pou.file_path }}`
@@ -54,3 +63,6 @@ Total POUs: **{{ pous|length }}**
 {% endif %}
 
 {% endfor %}
+{% else %}
+*No functions found.*
+{% endif %}

@@ -8,6 +8,7 @@ This document provides an overview of the {{ project.name }} system architecture
 
 ## Program Organization Units (POUs)
 
+{% if pous %}
 {% for pou in pous %}
 ### {{ pou.name }}
 - **Type**: {{ pou.type }}
@@ -23,9 +24,13 @@ This document provides an overview of the {{ project.name }} system architecture
 {% endif %}
 
 {% endfor %}
+{% else %}
+*No POUs found.*
+{% endif %}
 
 ## Data Types
 
+{% if duts %}
 {% for dut in duts %}
 ### {{ dut.name }}
 - **Type**: {{ dut.type }}
@@ -34,9 +39,13 @@ This document provides an overview of the {{ project.name }} system architecture
 - **Members**: {{ dut.members|length }}
 
 {% endfor %}
+{% else %}
+*No custom data types in this minimal example.*
+{% endif %}
 
 ## Global Variables
 
+{% if gvls %}
 {% for gvl in gvls %}
 ### {{ gvl.name }}
 - **File**: `{{ gvl.file_path }}`
@@ -44,25 +53,22 @@ This document provides an overview of the {{ project.name }} system architecture
 - **Variables**: {{ gvl.variables|length }}
 
 {% endfor %}
+{% else %}
+*No global variables used in this minimal example.*
+{% endif %}
 
 ## Component Relationships
 
 ```
 MAIN Program
-├── FB_ConveyorControl (Function Block)
-│   ├── Uses: E_MotorState (Enum)
-│   └── Uses: ST_ConveyorData (Struct)
-├── FB_MotorControl (Function Block)
-│   └── Uses: E_MotorState (Enum)
-└── References: GVL_System (Global Variables)
+└── Simple logic: bLamp := (bSwitch1 OR bSwitch2) AND NOT bEmergencyStop
 ```
 
 ## System Flow
 
-1. **Initialization**: System starts in MAIN program
-2. **State Management**: Motor states controlled via E_MotorState enumeration
-3. **Data Exchange**: Conveyor data stored in ST_ConveyorData structures
-4. **Global Monitoring**: System status tracked in GVL_System variables
+1. **Inputs**: Twee schakelaars (`bSwitch1`, `bSwitch2`) en noodstop (`bEmergencyStop`).
+2. **Logica**: Lamp aan bij minimaal één schakelaar; uit bij noodstop.
+3. **Output**: `bLamp` aan/uit.
 
 ---
 *For detailed information about each component, see the individual documentation pages.*

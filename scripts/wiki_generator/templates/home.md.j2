@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-This is an automatically generated wiki for the TwinCAT3 project demonstrating GitHub integration and automated documentation generation.
+This is an automatically generated wiki for a simple TwinCAT3 example (schakelaars en lampje) demonstrating GitHub integration and automated documentation generation.
 
 ### Project Statistics
 
@@ -20,10 +20,10 @@ This is an automatically generated wiki for the TwinCAT3 project demonstrating G
 
 - [Architecture Overview](Architecture-Overview.md) - System architecture and component relationships
 - [POUs](POUs.md) - Program Organization Units (Programs, Function Blocks, Functions)
-- [Data Types](Data-Types.md) - Custom data types and structures
-- [Global Variables](Global-Variables.md) - System-wide variables
-- [API Documentation](API-Documentation.md) - Programming interface documentation
-- [Project Statistics](Project-Statistics.md) - Detailed project metrics
+- {% if has_duts %}[Data Types](Data-Types.md) - Custom data types and structures{% endif %}
+- {% if has_gvls %}[Global Variables](Global-Variables.md) - System-wide variables{% endif %}
+- {% if has_api %}[API Documentation](API-Documentation.md) - Programming interface documentation{% endif %}
+{# Statistics page omitted in minimal demo #}
 
 ## Quick Start
 
