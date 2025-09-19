@@ -1,0 +1,33 @@
+# {{ gvl.name }}
+
+*Last updated: {{ timestamp }}*
+
+## Overview
+
+- **File**: `{{ gvl.file_path }}`
+{% if gvl.description %}
+- **Description**: {{ gvl.description }}
+{% endif %}
+
+## Variables
+
+{% if gvl.variables %}
+| Name | Type | Default | Comment |
+|------|------|---------|---------|
+{% for var in gvl.variables %}
+| `{{ var.name }}` | {{ var.type }} | {{ var.default or '-' }} | {{ var.comment or '-' }} |
+{% endfor %}
+{% else %}
+*No variables declared*
+{% endif %}
+
+{% if gvl.comments %}
+## Comments
+
+{% for comment in gvl.comments %}
+- {{ comment }}
+{% endfor %}
+{% endif %}
+
+---
+*[Back to Global Variables Overview](Global-Variables.md)*

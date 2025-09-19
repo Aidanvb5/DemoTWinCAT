@@ -1,0 +1,56 @@
+# Program Organization Units (POUs)
+
+*Last updated: {{ timestamp }}*
+
+This page lists all Program Organization Units in the project, including Programs, Function Blocks, and Functions.
+
+## Summary
+
+Total POUs: **{{ pous|length }}**
+
+{% set programs = pous|selectattr("type", "equalto", "PROGRAM")|list %}
+{% set function_blocks = pous|selectattr("type", "equalto", "FUNCTION_BLOCK")|list %}
+{% set functions = pous|selectattr("type", "equalto", "FUNCTION")|list %}
+
+- Programs: {{ programs|length }}
+- Function Blocks: {{ function_blocks|length }}
+- Functions: {{ functions|length }}
+
+## Programs
+
+{% for pou in programs %}
+### [{{ pou.name }}](POU-{{ pou.name }}.md)
+- **File**: `{{ pou.file_path }}`
+- **Description**: {{ pou.description or 'No description available' }}
+- **Variables**: {{ pou.variables|length }}
+{% if pou.author %}
+- **Author**: {{ pou.author }}
+{% endif %}
+
+{% endfor %}
+
+## Function Blocks
+
+{% for pou in function_blocks %}
+### [{{ pou.name }}](POU-{{ pou.name }}.md)
+- **File**: `{{ pou.file_path }}`
+- **Description**: {{ pou.description or 'No description available' }}
+- **Variables**: {{ pou.variables|length }}
+{% if pou.author %}
+- **Author**: {{ pou.author }}
+{% endif %}
+
+{% endfor %}
+
+## Functions
+
+{% for pou in functions %}
+### [{{ pou.name }}](POU-{{ pou.name }}.md)
+- **File**: `{{ pou.file_path }}`
+- **Description**: {{ pou.description or 'No description available' }}
+- **Variables**: {{ pou.variables|length }}
+{% if pou.author %}
+- **Author**: {{ pou.author }}
+{% endif %}
+
+{% endfor %}

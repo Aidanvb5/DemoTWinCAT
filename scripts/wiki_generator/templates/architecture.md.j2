@@ -1,0 +1,68 @@
+# Architecture Overview
+
+*Last updated: {{ timestamp }}*
+
+## System Architecture
+
+This document provides an overview of the {{ project.name }} system architecture, including the main components and their relationships.
+
+## Program Organization Units (POUs)
+
+{% for pou in pous %}
+### {{ pou.name }}
+- **Type**: {{ pou.type }}
+- **File**: `{{ pou.file_path }}`
+- **Description**: {{ pou.description or 'No description available' }}
+- **Author**: {{ pou.author }}
+- **Variables**: {{ pou.variables|length }} declared
+{% if pou.comments %}
+- **Comments**: 
+{% for comment in pou.comments[:3] %}
+  - {{ comment }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+
+## Data Types
+
+{% for dut in duts %}
+### {{ dut.name }}
+- **Type**: {{ dut.type }}
+- **File**: `{{ dut.file_path }}`
+- **Description**: {{ dut.description or 'No description available' }}
+- **Members**: {{ dut.members|length }}
+
+{% endfor %}
+
+## Global Variables
+
+{% for gvl in gvls %}
+### {{ gvl.name }}
+- **File**: `{{ gvl.file_path }}`
+- **Description**: {{ gvl.description or 'No description available' }}
+- **Variables**: {{ gvl.variables|length }}
+
+{% endfor %}
+
+## Component Relationships
+
+```
+MAIN Program
+├── FB_ConveyorControl (Function Block)
+│   ├── Uses: E_MotorState (Enum)
+│   └── Uses: ST_ConveyorData (Struct)
+├── FB_MotorControl (Function Block)
+│   └── Uses: E_MotorState (Enum)
+└── References: GVL_System (Global Variables)
+```
+
+## System Flow
+
+1. **Initialization**: System starts in MAIN program
+2. **State Management**: Motor states controlled via E_MotorState enumeration
+3. **Data Exchange**: Conveyor data stored in ST_ConveyorData structures
+4. **Global Monitoring**: System status tracked in GVL_System variables
+
+---
+*For detailed information about each component, see the individual documentation pages.*

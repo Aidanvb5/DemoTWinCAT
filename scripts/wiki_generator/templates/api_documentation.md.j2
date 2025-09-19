@@ -1,0 +1,81 @@
+# API Documentation
+
+*Last updated: {{ timestamp }}*
+
+This page provides API documentation for the {{ project.name }} project.
+
+## Function Blocks
+
+{% for fb in function_blocks %}
+### {{ fb.name }}
+
+**Description**: {{ fb.description or 'No description available' }}
+
+#### Interface
+
+{% if fb.variables %}
+##### Variables
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+{% for var in fb.variables %}
+| `{{ var.name }}` | {{ var.type }} | {{ var.default or '-' }} | {{ var.comment or '-' }} |
+{% endfor %}
+{% endif %}
+
+#### Usage Example
+
+```pascal
+// Example usage of {{ fb.name }}
+VAR
+    fb{{ fb.name }}: {{ fb.name }};
+END_VAR
+
+// In implementation:
+fb{{ fb.name }}(
+    // Configure inputs here
+);
+```
+
+---
+
+{% endfor %}
+
+## Functions
+
+{% for func in functions %}
+### {{ func.name }}
+
+**Description**: {{ func.description or 'No description available' }}
+
+{% if func.variables %}
+#### Parameters
+| Name | Type | Description |
+|------|------|-------------|
+{% for var in func.variables %}
+| `{{ var.name }}` | {{ var.type }} | {{ var.comment or '-' }} |
+{% endfor %}
+{% endif %}
+
+---
+
+{% endfor %}
+
+## Data Types Reference
+
+{% for dut in duts %}
+### {{ dut.name }}
+
+**Type**: {{ dut.type }}  
+**Description**: {{ dut.description or 'No description available' }}
+
+{% if dut.members %}
+| Member | Type | Description |
+|--------|------|-------------|
+{% for member in dut.members %}
+| `{{ member.name }}` | {{ member.type }} | {{ member.comment or '-' }} |
+{% endfor %}
+{% endif %}
+
+---
+
+{% endfor %}

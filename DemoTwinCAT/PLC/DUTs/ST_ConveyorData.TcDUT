@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.5.13.50">
+  <DUT Name="ST_ConveyorData" Id="{6dc9b884-9d15-491e-8f3c-929d5ca9c875}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+TYPE ST_ConveyorData :
+STRUCT
+	// Conveyor Data Structure
+	// Contains all relevant data for a conveyor system
+	// Author: Demo System
+	// Version: 1.0
+	
+	// Status information
+	bRunning		: BOOL;			// Conveyor is currently running
+	bFault			: BOOL;			// Fault condition present
+	bReady			: BOOL;			// Ready for operation
+	
+	// Speed and control
+	nSpeed			: INT;			// Current speed percentage (0-100)
+	nSpeedSetpoint	: INT;			// Desired speed percentage
+	
+	// Operational data
+	nStartCount		: UDINT;		// Number of times started
+	tRunTime		: TIME;			// Total running time
+	tLastStartTime	: TIME;			// Time of last start
+	
+	// Configuration
+	sConveyorName	: STRING(50);	// Conveyor identification name
+	nMaxSpeed		: INT := 100;	// Maximum allowed speed
+	nMinSpeed		: INT := 10;	// Minimum running speed
+	
+	// Maintenance data
+	tMaintenanceDue	: TIME;			// Time until maintenance due
+	nMaintenanceCycles : UDINT;		// Cycles until maintenance
+	sLastMaintenance : STRING(20);	// Last maintenance date
+	
+	// Diagnostic information
+	rAvgCurrent		: REAL;			// Average motor current
+	rMaxCurrent		: REAL;			// Peak motor current
+	nFaultCount		: UDINT;		// Total fault occurrences
+	sLastFault		: STRING(100);	// Description of last fault
+	
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

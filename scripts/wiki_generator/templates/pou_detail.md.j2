@@ -1,0 +1,49 @@
+# {{ pou.name }}
+
+*Last updated: {{ timestamp }}*
+
+## Overview
+
+- **Type**: {{ pou.type }}
+- **File**: `{{ pou.file_path }}`
+{% if pou.description %}
+- **Description**: {{ pou.description }}
+{% endif %}
+{% if pou.author %}
+- **Author**: {{ pou.author }}
+{% endif %}
+{% if pou.version %}
+- **Version**: {{ pou.version }}
+{% endif %}
+{% if pou.date %}
+- **Date**: {{ pou.date }}
+{% endif %}
+
+## Variables
+
+{% if pou.variables %}
+| Name | Type | Default | Comment |
+|------|------|---------|---------|
+{% for var in pou.variables %}
+| `{{ var.name }}` | {{ var.type }} | {{ var.default or '-' }} | {{ var.comment or '-' }} |
+{% endfor %}
+{% else %}
+*No variables declared*
+{% endif %}
+
+## Implementation
+
+```pascal
+{{ pou.implementation }}
+```
+
+{% if pou.comments %}
+## Additional Comments
+
+{% for comment in pou.comments %}
+- {{ comment }}
+{% endfor %}
+{% endif %}
+
+---
+*[Back to POUs Overview](POUs.md)*

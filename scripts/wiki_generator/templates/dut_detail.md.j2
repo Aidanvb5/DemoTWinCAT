@@ -1,0 +1,40 @@
+# {{ dut.name }}
+
+*Last updated: {{ timestamp }}*
+
+## Overview
+
+- **Type**: {{ dut.type }}
+- **File**: `{{ dut.file_path }}`
+{% if dut.description %}
+- **Description**: {{ dut.description }}
+{% endif %}
+{% if dut.author %}
+- **Author**: {{ dut.author }}
+{% endif %}
+{% if dut.version %}
+- **Version**: {{ dut.version }}
+{% endif %}
+
+## {% if dut.type == "STRUCT" %}Members{% else %}Values{% endif %}
+
+{% if dut.members %}
+| Name | Type | Default | Comment |
+|------|------|---------|---------|
+{% for member in dut.members %}
+| `{{ member.name }}` | {{ member.type }} | {{ member.default or '-' }} | {{ member.comment or '-' }} |
+{% endfor %}
+{% else %}
+*No members defined*
+{% endif %}
+
+{% if dut.comments %}
+## Comments
+
+{% for comment in dut.comments %}
+- {{ comment }}
+{% endfor %}
+{% endif %}
+
+---
+*[Back to Data Types Overview](Data-Types.md)*

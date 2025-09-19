@@ -1,0 +1,28 @@
+# Global Variable Lists (GVLs)
+
+*Last updated: {{ timestamp }}*
+
+This page lists all Global Variable Lists in the project.
+
+## Summary
+
+Total GVLs: **{{ gvls|length }}**
+Total Global Variables: **{{ gvls|map(attribute='variables')|map('length')|sum }}**
+
+{% for gvl in gvls %}
+## [{{ gvl.name }}](GVL-{{ gvl.name }}.md)
+
+- **File**: `{{ gvl.file_path }}`
+- **Description**: {{ gvl.description or 'No description available' }}
+- **Variables**: {{ gvl.variables|length }}
+
+### Key Variables
+
+{% for var in gvl.variables[:5] %}
+- `{{ var.name }}` ({{ var.type }}){% if var.comment %} - {{ var.comment }}{% endif %}
+{% endfor %}
+{% if gvl.variables|length > 5 %}
+*... and {{ gvl.variables|length - 5 }} more*
+{% endif %}
+
+{% endfor %}
