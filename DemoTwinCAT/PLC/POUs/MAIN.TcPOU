@@ -14,7 +14,7 @@ VAR
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[// =============================================
-// MAIN - Simpele demo met schakelaars en lampje Aidan was hier
+// MAIN - Simpele demo met schakelaars en lampje
 // =============================================
 
 // Logica: lamp aan als een van de schakelaars waar is,
