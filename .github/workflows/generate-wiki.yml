@@ -3,22 +3,12 @@ name: Generate Wiki Documentation
 on:
   push:
     branches: [ main, master ]
-    paths:
-      - 'DemoTwinCAT/**/*.TcPOU'
-      - 'DemoTwinCAT/**/*.TcDUT' 
-      - 'DemoTwinCAT/**/*.TcGVL'
-      - 'DemoTwinCAT/**/*.tsproj'
-      - 'scripts/wiki_generator/**'
-      - 'scripts/generate_wiki.py'
+    paths-ignore:
+      - 'wiki/**'
   pull_request:
     branches: [ main, master ]
-    paths:
-      - 'DemoTwinCAT/**/*.TcPOU'
-      - 'DemoTwinCAT/**/*.TcDUT'
-      - 'DemoTwinCAT/**/*.TcGVL'
-      - 'DemoTwinCAT/**/*.tsproj'
-      - 'scripts/wiki_generator/**'
-      - 'scripts/generate_wiki.py'
+    paths-ignore:
+      - 'wiki/**'
   workflow_dispatch:
     inputs:
       force_update:
