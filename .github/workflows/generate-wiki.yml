@@ -98,6 +98,7 @@ jobs:
 
         Triggered by: ${{ github.event_name }}
         Commit: ${{ github.sha }}"
+        git pull --rebase origin main
         git push
         
     - name: Clone wiki repository
