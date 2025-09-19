@@ -79,31 +79,21 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
-        # Add wiki files
         git add wiki/
-        
-        # Check if there are changes to commit
         if git diff --staged --quiet; then
           echo "No changes to commit"
           exit 0
         fi
-        
-        # Commit changes
+        git pull --rebase origin main
         git commit -m "🤖 Auto-update wiki documentation
-        
+
         Generated from TwinCAT project files:
         - POUs: $(find DemoTwinCAT -name "*.TcPOU" | wc -l) files
         - DUTs: $(find DemoTwinCAT -name "*.TcDUT" | wc -l) files  
         - GVLs: $(find DemoTwinCAT -name "*.TcGVL" | wc -l) files
-        
+
         Triggered by: ${{ github.event_name }}
         Commit: ${{ github.sha }}"
-        
-        # Pull latest changes with rebase to avoid non-fast-forward errors
-        git pull --rebase origin main
-        
-        # Push changes
         git push
         
     - name: Clone wiki repository
