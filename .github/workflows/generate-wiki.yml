@@ -106,6 +106,80 @@ jobs:
         # Push changes
         git push
         
+    - name: Clone wiki repository
+      if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
+      run: |
+        echo "Cloning wiki repository..."
+        # Clone the wiki repository using GitHub token
+        git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git wiki-repo 2>/dev/null || {
+          echo "Wiki repository doesn't exist or is empty, creating new one..."
+          mkdir -p wiki-repo
+          cd wiki-repo
+          git init
+          git remote add origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          # Create initial commit to establish master branch
+          echo "# Wiki" > README.md
+          git add README.md
+          git commit -m "Initialize wiki repository"
+          git branch -M master
+          cd ..
+        }
+        
+    - name: Update wiki repository
+      if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
+      run: |
+        echo "Updating wiki repository with generated documentation..."
+        
+        # Configure git for wiki repository
+        cd wiki-repo
+        git config user.email "action@github.com"
+        git config user.name "GitHub Action"
+        
+        # Ensure we're on master branch
+        git checkout master 2>/dev/null || git checkout -b master
+        
+        # Copy all generated wiki files to wiki repository
+        cp ../wiki/*.md . 2>/dev/null || echo "No markdown files to copy"
+        
+        # Add all changes
+        git add .
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit to wiki repository"
+          cd ..
+          exit 0
+        fi
+        
+        # Commit changes
+        git commit -m "🤖 Auto-update wiki documentation
+        
+        Generated from TwinCAT project files:
+        - POUs: $(find ../DemoTwinCAT -name "*.TcPOU" | wc -l) files
+        - DUTs: $(find ../DemoTwinCAT -name "*.TcDUT" | wc -l) files  
+        - GVLs: $(find ../DemoTwinCAT -name "*.TcGVL" | wc -l) files
+        
+        Documentation includes:
+        - Home page with project overview
+        - Architecture overview
+        - Detailed component documentation
+        - API documentation
+        - Project statistics
+        
+        Triggered by: ${{ github.event_name }}
+        Source commit: ${{ github.sha }}"
+        
+        # Push to wiki repository (master branch)
+        git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git master || {
+          echo "Failed to push to existing wiki, trying to create new repository..."
+          git push -u https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Aidanvb5/DemoTWinCAT.wiki.git master
+        }
+        
+        cd ..
+        echo "Wiki repository updated successfully!"
+        
     - name: Upload wiki artifacts
       uses: actions/upload-artifact@v4
       with:
