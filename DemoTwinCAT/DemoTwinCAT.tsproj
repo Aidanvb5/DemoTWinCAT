@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FileVersion>1.0.0.0</FileVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F4C2B9B4-93AD-4761-95FE-6893777F2C41}</ProjectGuid>
+    <SubObjectsSortedByName>True</SubObjectsSortedByName>
+    <DownloadApplicationInfo>True</DownloadApplicationInfo>
+    <WriteProductVersion>True</WriteProductVersion>
+    <GenerateTpy>False</GenerateTpy>
+    <Name>DemoTwinCAT</Name>
+    <ProgramVersion>3.5.13.50</ProgramVersion>
+    <Application>{8E6C6068-AFFA-496C-8DE7-32F71885EEAD}</Application>
+    <TypeSystem>{60E68F81-A1E8-4D5F-A4C5-04A0B64E6B90}</TypeSystem>
+    <Implicit_Task_Info>{96F3C39C-BE94-46B3-84E5-8D4BC0FB7C81}</Implicit_Task_Info>
+    <Implicit_KindOfTask>{1E492B9F-D0E3-409B-B9E6-BF4F54AF8E5B}</Implicit_KindOfTask>
+    <Implicit_Jitter_Distribution>{E9BCC9FA-D6B8-43D5-91F5-7C3AAB0CB30A}</Implicit_Jitter_Distribution>
+    <LibraryReferences>{A9CCD3AE-D7F5-46FF-A48F-C3B5C68FDAF9}</LibraryReferences>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="PLC\PlcTask.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC\POUs\MAIN.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC\POUs\FB_ConveyorControl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC\POUs\FB_MotorControl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC\DUTs\E_MotorState.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC\DUTs\ST_ConveyorData.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PLC\GVLs\GVL_System.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\System Manager.TcSMF">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="PLC" />
+    <Folder Include="PLC\POUs" />
+    <Folder Include="PLC\DUTs" />
+    <Folder Include="PLC\GVLs" />
+    <Folder Include="PLC\VISUs" />
+    <Folder Include="System" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="DemoTwinCAT.tmc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

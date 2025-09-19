@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.5.13.50">
+  <DUT Name="E_MotorState" Id="{5dc8b883-9d15-491e-8f3c-929d5ca9c874}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_MotorState :
+(
+	// Motor State Enumeration
+	// Defines the possible states of a motor control system
+	// Author: Demo System
+	// Version: 1.0
+	
+	STOPPED		:= 0,	// Motor is stopped and safe
+	STARTING	:= 10,	// Motor is in startup sequence
+	RUNNING		:= 20,	// Motor is running normally
+	STOPPING	:= 30,	// Motor is stopping/decelerating
+	FAULT		:= 99	// Motor is in fault condition
+);
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

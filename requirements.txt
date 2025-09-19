@@ -1,0 +1,37 @@
+# Python Dependencies for TwinCAT Wiki Generator
+# Used to auto-generate documentation from TwinCAT project files
+
+# XML parsing and manipulation
+lxml>=4.9.0
+xmltodict>=0.13.0
+
+# File operations and utilities
+pathlib>=1.0.1
+glob2>=0.7
+
+# Markdown generation
+markdown>=3.4.0
+pymdown-extensions>=10.0.0
+
+# Template engine for documentation
+jinja2>=3.1.0
+
+# YAML configuration files
+pyyaml>=6.0
+
+# Git integration for automation
+gitpython>=3.1.0
+
+# Date and time utilities
+python-dateutil>=2.8.0
+
+# Regular expressions (built-in but explicit for documentation)
+# regex>=2022.0.0
+
+# JSON handling (built-in but explicit for documentation)
+# json
+
+# Development dependencies (optional)
+# pytest>=7.0.0
+# black>=23.0.0
+# flake8>=6.0.0

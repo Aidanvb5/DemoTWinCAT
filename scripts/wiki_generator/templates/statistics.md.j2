@@ -1,0 +1,58 @@
+# Project Statistics
+
+*Last updated: {{ timestamp }}*
+
+## Overview
+
+Project: **{{ project.name }}**  
+Version: **{{ project.version }}**  
+Author: **{{ project.author }}**
+
+## Code Statistics
+
+### Components
+- **Total POUs**: {{ stats.total_pous }}
+  - Programs: {{ stats.programs }}
+  - Function Blocks: {{ stats.function_blocks }}
+  - Functions: {{ stats.functions }}
+- **Total DUTs**: {{ stats.total_duts }}
+  - Structures: {{ stats.structs }}
+  - Enumerations: {{ stats.enums }}
+- **Total GVLs**: {{ stats.total_gvls }}
+
+### Variables
+- **Local Variables**: {{ stats.total_variables }}
+- **Global Variables**: {{ stats.total_global_vars }}
+- **Total Variables**: {{ stats.total_variables + stats.total_global_vars }}
+
+## Detailed Breakdown
+
+### POUs by Complexity
+| POU Name | Type | Variables | Comments |
+|----------|------|-----------|----------|
+{% for pou in pous %}
+| {{ pou.name }} | {{ pou.type }} | {{ pou.variables|length }} | {{ pou.comments|length }} |
+{% endfor %}
+
+### Data Types by Size
+| DUT Name | Type | Members |
+|----------|------|---------|
+{% for dut in duts %}
+| {{ dut.name }} | {{ dut.type }} | {{ dut.members|length }} |
+{% endfor %}
+
+### Global Variable Distribution
+| GVL Name | Variables |
+|----------|-----------|
+{% for gvl in gvls %}
+| {{ gvl.name }} | {{ gvl.variables|length }} |
+{% endfor %}
+
+## Code Quality Metrics
+
+- **Documentation Coverage**: {% if stats.total_pous > 0 %}{{ (pous|selectattr("description")|list|length / stats.total_pous * 100)|round(1) }}%{% else %}N/A{% endif %}
+- **Average Variables per POU**: {% if stats.total_pous > 0 %}{{ (stats.total_variables / stats.total_pous)|round(1) }}{% else %}N/A{% endif %}
+- **Average Members per DUT**: {% if stats.total_duts > 0 %}{{ (duts|map(attribute='members')|map('length')|sum / stats.total_duts)|round(1) }}{% else %}N/A{% endif %}
+
+---
+*Statistics generated automatically from project source code*

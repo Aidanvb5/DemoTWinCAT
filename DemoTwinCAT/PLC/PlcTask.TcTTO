@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.5.13.50">
+  <Task Name="PlcTask" Id="{8dcbb886-9d15-491e-8f3c-929d5ca9c877}">
+    <Declaration><![CDATA[// Task Configuration for Demo TwinCAT Application
+// Main PLC Task - Cyclic execution
+// Cycle Time: 10ms (100 Hz)
+// Priority: 20 (Real-time)
+
+PROGRAM PlcTask
+WITH PlcTaskInstance : MAIN;]]></Declaration>
+  </Task>
+</TcPlcObject>

@@ -1,0 +1,176 @@
+name: Generate Wiki Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'DemoTwinCAT/**/*.TcPOU'
+      - 'DemoTwinCAT/**/*.TcDUT' 
+      - 'DemoTwinCAT/**/*.TcGVL'
+      - 'DemoTwinCAT/**/*.tsproj'
+      - 'scripts/wiki_generator/**'
+      - 'scripts/generate_wiki.py'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'DemoTwinCAT/**/*.TcPOU'
+      - 'DemoTwinCAT/**/*.TcDUT'
+      - 'DemoTwinCAT/**/*.TcGVL'
+      - 'DemoTwinCAT/**/*.tsproj'
+      - 'scripts/wiki_generator/**'
+      - 'scripts/generate_wiki.py'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force wiki update even if no changes detected'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-wiki:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Generate wiki documentation
+      run: |
+        echo "Generating wiki documentation..."
+        python scripts/generate_wiki.py --verbose --project-dir DemoTwinCAT --output-dir wiki
+        
+    - name: Check for changes
+      id: check_changes
+      run: |
+        if [ -d "wiki" ]; then
+          if git diff --quiet HEAD -- wiki/ 2>/dev/null; then
+            echo "No changes detected in wiki files"
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in wiki files"
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "Wiki directory created"
+          echo "changes_detected=true" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Commit and push wiki changes
+      if: steps.check_changes.outputs.changes_detected == 'true' || github.event.inputs.force_update == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add wiki files
+        git add wiki/
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+          exit 0
+        fi
+        
+        # Commit changes
+        git commit -m "🤖 Auto-update wiki documentation
+        
+        Generated from TwinCAT project files:
+        - POUs: $(find DemoTwinCAT -name "*.TcPOU" | wc -l) files
+        - DUTs: $(find DemoTwinCAT -name "*.TcDUT" | wc -l) files  
+        - GVLs: $(find DemoTwinCAT -name "*.TcGVL" | wc -l) files
+        
+        Triggered by: ${{ github.event_name }}
+        Commit: ${{ github.sha }}"
+        
+        # Push changes
+        git push
+        
+    - name: Upload wiki artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: twincat-wiki-documentation
+        path: wiki/
+        retention-days: 30
+        
+    - name: Create release on tag
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          wiki/*.md
+        name: "Documentation for ${{ github.ref_name }}"
+        body: |
+          Automatically generated wiki documentation for TwinCAT project.
+          
+          **Contents:**
+          - Complete API documentation
+          - Architecture overview
+          - Detailed component documentation
+          - Project statistics
+          
+          Generated on: ${{ steps.date.outputs.date }}
+        draft: false
+        prerelease: false
+
+  # Optional: Deploy to GitHub Pages
+  deploy-pages:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: generate-wiki
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+    - name: Download wiki artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: twincat-wiki-documentation
+        path: wiki/
+        
+    - name: Create index.html redirect
+      run: |
+        cat > wiki/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=Home.md">
+          <title>TwinCAT Project Documentation</title>
+        </head>
+        <body>
+          <p><a href="Home.md">Click here if you are not redirected automatically</a></p>
+        </body>
+        </html>
+        EOF
+        
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload to Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: wiki/
+        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
