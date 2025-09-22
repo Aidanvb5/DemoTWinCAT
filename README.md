@@ -81,6 +81,16 @@ The project includes automated workflows that trigger on:
 - **Pull Requests**: Validate documentation generation on PRs
 - **Manual Triggers**: Force documentation updates when needed
 - **Releases**: Package documentation with release artifacts
+- **Version Bumping**: Automatically bump semantic version on merges to main/development branches
+
+### Automated Semantic Versioning
+- **Version Format**: MAJOR.MINOR.PATCH.BUILD (e.g., 1.0.0.0)
+- **Branch-based Bumping**: Different version components bumped based on target branch
+  - `main` branch: Minor bumps for features, Patch bumps for fixes, Major bumps for breaking changes
+  - `development` branch: Build bumps for development features
+  - `hotfix/*` branches: Patch bumps for critical fixes
+- **Fork Protection**: Version bumps are skipped for pull requests from forks
+- **Git Tagging**: Automatic tag creation for main branch releases (e.g., v1.1.0.0)
 
 ### Documentation Updates
 - **Regeneration on changes**: Documentation is generated during CI runs
