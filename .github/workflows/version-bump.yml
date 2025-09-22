@@ -1,0 +1,172 @@
+name: Automated Version Bump
+
+# Trigger the workflow on push events to main and development branches
+# This ensures version bumping happens after merges, not on every commit
+on:
+  push:
+    branches: 
+      - main
+      - development
+    # Exclude changes to the VERSION file itself to prevent infinite loops
+    paths-ignore:
+      - 'VERSION'
+      - '.github/workflows/version-bump.yml'
+
+# Grant necessary permissions for the workflow
+permissions:
+  contents: write  # Required to commit version changes
+  pull-requests: read  # Required to read PR information for fork detection
+
+jobs:
+  version-bump:
+    name: Bump Version
+    runs-on: ubuntu-latest
+    
+    # Only run for direct pushes to main/development, not for fork PRs
+    if: github.repository == 'Aidanvb5/DemoTWinCAT'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history to ensure proper git operations
+          fetch-depth: 0
+          # Use a token that can trigger other workflows
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Configure Git
+        run: |
+          # Configure git with GitHub Actions bot identity
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine version bump type
+        id: bump-type
+        run: |
+          # Determine the appropriate version bump based on branch and context
+          BRANCH_NAME="${{ github.ref_name }}"
+          
+          echo "Branch: $BRANCH_NAME"
+          echo "Event: ${{ github.event_name }}"
+          
+          # Set bump type based on branch
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            # For main branch, analyze recent commits to determine bump type
+            # Look for conventional commit patterns or keywords
+            RECENT_COMMITS=$(git log --oneline -5 --grep="BREAKING CHANGE\|breaking:" || echo "")
+            FEAT_COMMITS=$(git log --oneline -5 --grep="feat:\|feature:" || echo "")
+            
+            if [[ -n "$RECENT_COMMITS" ]]; then
+              BUMP_TYPE="major"
+            elif [[ -n "$FEAT_COMMITS" ]]; then
+              BUMP_TYPE="minor"
+            else
+              # Default to minor for main branch merges
+              BUMP_TYPE="minor"
+            fi
+          elif [[ "$BRANCH_NAME" == "development" ]]; then
+            # Development branch gets build bumps
+            BUMP_TYPE="build"
+          else
+            # Fallback for other branches
+            BUMP_TYPE="auto"
+          fi
+          
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "Determined bump type: $BUMP_TYPE"
+
+      - name: Run version bump
+        id: version-bump
+        run: |
+          # Execute the version bump script
+          python .github/scripts/bump_version.py \
+            --branch "${{ github.ref_name }}" \
+            --bump-type "${{ steps.bump-type.outputs.bump_type }}"
+          
+          # Capture the new version for later steps
+          NEW_VERSION=$(cat VERSION)
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Version bumped to: $NEW_VERSION"
+
+      - name: Check for version changes
+        id: version-check
+        run: |
+          # Check if VERSION file was actually modified
+          if git diff --quiet HEAD -- VERSION; then
+            echo "No version changes detected"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version file was modified"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit version bump
+        if: steps.version-check.outputs.changed == 'true'
+        run: |
+          # Commit the version change with a descriptive message
+          git add VERSION
+          git commit -m "🔖 Bump version to ${{ steps.version-bump.outputs.new_version }}
+
+          - Branch: ${{ github.ref_name }}
+          - Bump type: ${{ steps.bump-type.outputs.bump_type }}
+          - Triggered by: ${{ github.event_name }}
+          - Commit: ${{ github.sha }}
+          
+          [skip ci]"
+
+      - name: Push version bump commit
+        if: steps.version-check.outputs.changed == 'true'
+        run: |
+          # Push the version bump commit back to the repository
+          git push origin ${{ github.ref_name }}
+
+      - name: Create git tag (main branch only)
+        if: steps.version-check.outputs.changed == 'true' && github.ref_name == 'main'
+        run: |
+          # Create and push a git tag for main branch releases
+          TAG_NAME="v${{ steps.version-bump.outputs.new_version }}"
+          
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME
+
+          Automated release created from main branch.
+          
+          Version: ${{ steps.version-bump.outputs.new_version }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          
+          git push origin "$TAG_NAME"
+          
+          echo "Created and pushed tag: $TAG_NAME"
+
+      - name: Summary
+        if: steps.version-check.outputs.changed == 'true'
+        run: |
+          echo "## 🎉 Version Bump Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Version**: ${{ steps.version-bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bump Type**: ${{ steps.bump-type.outputs.bump_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "- **Git Tag**: v${{ steps.version-bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The version has been automatically updated and committed back to the repository." >> $GITHUB_STEP_SUMMARY
+
+      - name: No changes summary
+        if: steps.version-check.outputs.changed == 'false'
+        run: |
+          echo "## ℹ️ No Version Changes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No version bump was required for this push." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Current Version**: $(cat VERSION)" >> $GITHUB_STEP_SUMMARY
