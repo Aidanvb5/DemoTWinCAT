@@ -86,13 +86,6 @@ class VersionBumper:
     def bump_version(self, bump_type: str, branch: str) -> Tuple[int, int, int, int]:
         """
         Bump the version according to the specified type and branch context.
-        
-        Args:
-            bump_type: Type of version bump ('major', 'minor', 'patch', 'build', 'auto')
-            branch: Git branch name for context-aware bumping
-            
-        Returns:
-            New version tuple (major, minor, patch, build)
         """
         current = self.read_version()
         major, minor, patch, build = current
@@ -104,68 +97,51 @@ class VersionBumper:
         # Auto-detect bump type based on branch if not specified
         if bump_type == "auto":
             bump_type = self._auto_detect_bump_type(branch)
-            print(f"🤖 Auto-detected bump type: {bump_type}")
         
-        # Apply version bump logic
+        # Apply version bump logic with proper resets
         if bump_type == "major":
             major += 1
-            minor = 0
-            patch = 0
-            build = 0
+            minor = 0  # Reset minor
+            patch = 0  # Reset patch  
+            build = 0  # Reset build
         elif bump_type == "minor":
             minor += 1
-            patch = 0
-            build = 0
+            patch = 0  # Reset patch
+            build = 0  # Reset build
         elif bump_type == "patch":
             patch += 1
-            build = 0
+            build = 0  # Reset build
         elif bump_type == "build":
             build += 1
         else:
-            raise ValueError(f"Invalid bump type: {bump_type}. Valid types: major, minor, patch, build, auto")
+            raise ValueError(f"Invalid bump type: {bump_type}")
         
         return (major, minor, patch, build)
     
     def _auto_detect_bump_type(self, branch: str) -> str:
-        """
-        Auto-detect the appropriate bump type based on branch name and context.
-        
-        Version Strategy (based on diagram):
-        - Main branch: Major releases (1.0.0.0 -> 2.0.0.0)
-        - Release branch: Minor releases (1.0.0.0 -> 1.1.0.0) 
-        - Development branch: Patch releases (1.0.0.0 -> 1.0.1.0)
-        - Hotfix branch: Build releases (1.0.0.0 -> 1.0.0.1)
-        - Feature branch: Build releases (merged into development)
-        
-        Args:
-            branch: Git branch name
-            
-        Returns:
-            Bump type string
-        """
+        """Auto-detect the appropriate bump type based on branch name."""
         branch_lower = branch.lower()
         
-        # Main branch - major releases when significant features are merged
+        # Main branch - minor releases (not major during normal development)
         if branch_lower in ["main", "master"]:
-            return "major"
+            return "minor"  # Changed from "major" to "minor"
         
         # Release branch - minor releases for version releases
         elif branch_lower.startswith("release/"):
             return "minor"
         
-        # Development branch - patch releases for development iterations
+        # Development branch - patch releases
         elif branch_lower in ["development", "develop", "dev"]:
             return "patch"
         
-        # Hotfix branches - build releases for quick fixes
+        # Hotfix branches - build releases
         elif branch_lower.startswith(("hotfix/", "fix/")):
             return "build"
         
-        # Feature branches - build releases (typically merged to development)
+        # Feature branches - build releases
         elif branch_lower.startswith(("feature/", "feat/")):
             return "build"
         
-        # Default to build bump for unknown branches
         else:
             print(f"⚠️  Unknown branch pattern: {branch}. Defaulting to build bump.")
             return "build"
