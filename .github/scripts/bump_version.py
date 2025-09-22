@@ -130,6 +130,13 @@ class VersionBumper:
         """
         Auto-detect the appropriate bump type based on branch name and context.
         
+        Version Strategy (based on diagram):
+        - Main branch: Major releases (1.0.0.0 -> 2.0.0.0)
+        - Release branch: Minor releases (1.0.0.0 -> 1.1.0.0) 
+        - Development branch: Patch releases (1.0.0.0 -> 1.0.1.0)
+        - Hotfix branch: Build releases (1.0.0.0 -> 1.0.0.1)
+        - Feature branch: Build releases (merged into development)
+        
         Args:
             branch: Git branch name
             
@@ -138,27 +145,25 @@ class VersionBumper:
         """
         branch_lower = branch.lower()
         
-        # Main/master branch - typically gets minor bumps for features, patch for fixes
+        # Main branch - major releases when significant features are merged
         if branch_lower in ["main", "master"]:
-            # For main branch merges, default to minor bump
-            # This could be enhanced to analyze commit messages for breaking changes
-            return "minor"
+            return "major"
         
-        # Development branch - gets build bumps for continuous integration
-        elif branch_lower in ["development", "develop", "dev"]:
-            return "build"
-        
-        # Feature branches - build bumps
-        elif branch_lower.startswith(("feature/", "feat/")):
-            return "build"
-        
-        # Hotfix branches - patch bumps
-        elif branch_lower.startswith(("hotfix/", "fix/")):
-            return "patch"
-        
-        # Release branches - minor bumps
+        # Release branch - minor releases for version releases
         elif branch_lower.startswith("release/"):
             return "minor"
+        
+        # Development branch - patch releases for development iterations
+        elif branch_lower in ["development", "develop", "dev"]:
+            return "patch"
+        
+        # Hotfix branches - build releases for quick fixes
+        elif branch_lower.startswith(("hotfix/", "fix/")):
+            return "build"
+        
+        # Feature branches - build releases (typically merged to development)
+        elif branch_lower.startswith(("feature/", "feat/")):
+            return "build"
         
         # Default to build bump for unknown branches
         else:

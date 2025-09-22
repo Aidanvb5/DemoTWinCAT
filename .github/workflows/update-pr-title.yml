@@ -1,0 +1,45 @@
+name: Update PR Title with Version
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_run:
+    workflows: ["Version Bump"]
+    types: [completed]
+
+jobs:
+  update-pr-title:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Read current version
+      id: version
+      run: |
+        VERSION=$(cat VERSION)
+        echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Update PR title
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const version = '${{ steps.version.outputs.current_version }}';
+          const currentTitle = context.payload.pull_request.title;
+          
+          // Remove existing version from title if present
+          const cleanTitle = currentTitle.replace(/\[v\d+\.\d+\.\d+\.\d+\]\s*/, '');
+          
+          // Add new version prefix
+          const newTitle = `[v${version}] ${cleanTitle}`;
+          
+          await github.rest.pulls.update({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.pull_request.number,
+            title: newTitle
+          });
+          
+          console.log(`Updated PR title to: ${newTitle}`);
