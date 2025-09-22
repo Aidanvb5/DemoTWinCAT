@@ -1,42 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <FileVersion>1.0.0.0</FileVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F4C2B9B4-93AD-4761-95FE-6893777F2C41}</ProjectGuid>
-    <SubObjectsSortedByName>True</SubObjectsSortedByName>
-    <DownloadApplicationInfo>True</DownloadApplicationInfo>
-    <WriteProductVersion>True</WriteProductVersion>
-    <GenerateTpy>False</GenerateTpy>
-    <Name>DemoTwinCAT</Name>
-    <ProgramVersion>3.5.13.50</ProgramVersion>
-    <Application>{8E6C6068-AFFA-496C-8DE7-32F71885EEAD}</Application>
-    <TypeSystem>{60E68F81-A1E8-4D5F-A4C5-04A0B64E6B90}</TypeSystem>
-    <Implicit_Task_Info>{96F3C39C-BE94-46B3-84E5-8D4BC0FB7C81}</Implicit_Task_Info>
-    <Implicit_KindOfTask>{1E492B9F-D0E3-409B-B9E6-BF4F54AF8E5B}</Implicit_KindOfTask>
-    <Implicit_Jitter_Distribution>{E9BCC9FA-D6B8-43D5-91F5-7C3AAB0CB30A}</Implicit_Jitter_Distribution>
-    <LibraryReferences>{A9CCD3AE-D7F5-46FF-A48F-C3B5C68FDAF9}</LibraryReferences>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="PLC\PlcTask.TcTTO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="PLC\POUs\MAIN.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    
-    <Compile Include="System\System Manager.TcSMF">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="PLC" />
-    <Folder Include="PLC\POUs" />
-    <Folder Include="System" />
-  </ItemGroup>
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties RESOURCE_FILE="DemoTwinCAT.tmc" />
-    </VisualStudio>
-  </ProjectExtensions>
-</Project>
+<?xml version="1.0"?>
+<TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4026.18">
+	<Project ProjectGUID="{64C450DC-2266-430A-B679-A60B7811B040}" Target64Bit="true" ShowHideConfigurations="#x6">
+		<System>
+			<Tasks>
+				<Task Id="3" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
+					<Name>PlcTask</Name>
+				</Task>
+			</Tasks>
+		</System>
+		<Plc>
+			<Project GUID="{41EE1EEB-FCBD-4DB5-805E-8F43511D5A65}" Name="DemoTwinCAT" PrjFilePath="DemoTwinCAT\DemoTwinCAT.plcproj" TmcFilePath="DemoTwinCAT\DemoTwinCAT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2">
+					<Name>DemoTwinCAT Instance</Name>
+					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
+					<Contexts>
+						<Context>
+							<Id>1</Id>
+							<Name>Default</Name>
+						</Context>
+					</Contexts>
+				</Instance>
+			</Project>
+		</Plc>
+	</Project>
+</TcSmProject>

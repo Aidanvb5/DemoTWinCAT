@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{ac13af4a-937f-4f3d-ada3-e52572734a28}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+    // Simpele demo: twee schakelaars en een lampje
+    // Zet in online mode bSwitch1/bSwitch2 aan/uit en kijk hoe bLamp reageert
+
+    bSwitch1       : BOOL := FALSE;   // Schakelaar 1 (input)
+    bSwitch2       : BOOL := FALSE;   // Schakelaar 2 (input)
+    bEmergencyStop : BOOL := FALSE;   // Noodstop – forceert lamp uit
+    bLamp          : BOOL := FALSE;   // Lamp (output)	
+	Implementation: BOOL;
+	POU: BOOL;
+	TcPlcObject: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// =============================================
+// MAIN - Simpele demo met schakelaars en lampje TEST
+// =============================================
+
+// Logica: lamp aan als een van de schakelaars waar is,
+// tenzij de noodstop actief is (dan altijd uit)
+IF bEmergencyStop THEN
+    bLamp := FALSE;
+ELSE
+    bLamp := bSwitch1 OR bSwitch2;
+END_IF;]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
